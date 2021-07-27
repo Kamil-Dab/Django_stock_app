@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect
-from .models import Stock, StockQuery,Companies
+from .models import StockQuery
 from .forms import StockQueryForm
 from django.contrib import messages
+from .stockQueryHelper import get_records
 
 
 def home(request):
@@ -21,20 +22,32 @@ def stock_app(request):
             return redirect('stock_app')
         else:
             messages.error(request, form.errors['__all__'])
-            return render(request, 'stock_app.html', {'form': form, 'records': records, 'output': output})
+            return render(request, 'stock_app.html',
+                          {
+                              'form': form,
+                              'records': records,
+                              'output': output
+                          })
     else:
         form_data = StockQuery.objects.order_by('-id')
         if len(form_data) == 0:
-            return render(request, 'stock_app.html', {'form': form})
+            return render(request, 'stock_app.html',
+                          {
+                              'form': form
+                          })
         else:
-            form_data = form_data[0]
-            company_id = Companies.objects.filter(name=str(form_data.company_name))[0]
-            records = Stock.objects.filter(company_id=company_id.id).exclude(date__gte=form_data.end_date).filter(date__gte=form_data.start_date)
+            records = get_records(form_data[0])
+
             if len(records) == 0:
-                messages.info(request, "No data in this date range!")
+                messages.info(request, "There is no data in this date range!")
                 output = list()
             else:
-                messages.success(request, "Stocks Has Been Added!")
                 for item in records:
                     output.append(item)
-            return render(request, 'stock_app.html', {'form': form, 'form_data': form_data, 'records': records, 'output': output})
+            return render(request, 'stock_app.html',
+                          {
+                              'form': form,
+                              'form_data': form_data,
+                              'records': records,
+                              'output': output
+                          })

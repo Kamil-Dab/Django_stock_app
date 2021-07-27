@@ -34,7 +34,6 @@ class StockQueryForm(forms.ModelForm):
         end_date = cd.get("end_date")
 
         if start_date > end_date:
-            # Or you might want to tie this validation to the password1 field
-            raise ValidationError("End date should be after Start date")
+            raise ValidationError("Start date should be earlier than end date")
 
         return cd
